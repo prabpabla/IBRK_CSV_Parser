@@ -1,0 +1,54 @@
+Key = Symbol
+Values = Array of Orders
+Use a list
+Have a map of string to an array of orders
+
+"C:\\Users\\prab_\\Downloads\\DU3292618_20210616.csv"
+
+{key: []}
+
+Symbol To Order Map = {AAPL: [{Order1}.{Order2}]
+
+HashMap<string,List<Order Class>>
+
+Order Class: 
+ - Symbol 
+ - Price of the trade 
+ - Time of excecution 
+ - Quantity 
+ - Realized PnL
+ - Comissions
+
+Create the list of orders,
+ then create the map
+ 
+
+For every Symbol In HashMap<string,List<Order Class>>
+  - list of order = orderMap.get(symbol) // List<Order Class>
+  - Figure out what the to save in sheet 
+  - Add to a CSV Record Trade details 
+
+Save All CSV Records to file 
+
+
+Empty map
+{"APPL":<listOfOrder>}
+
+get a list of orders for a symbol
+
+
+MAP is empty {}
+I get my first order : APPL
+we want to check, if the symbol exits in the MAP
+cehck to see if it exists
+if the symbol deosn not exist in the MAP
+we need to initialize the empty list, which will map to this key : APPL
+{APPL:[]}
+
+add get the list for the symbol
+
+
+I need to create a CSV Record
+Symbol, Long/Short, T. Price Open, T. Price Close, Shares, Time Open, Time Close, Time Hold, Capital, Results, Partials, Scalp
+Look at how to create a CSV
+Reuse the CSV Parser library? or use another 
