@@ -39,6 +39,18 @@ public class TradeLog_Parser {
 	int totalQuantity = 0;
 	
 	public TradeLog_Parser(String filePath) throws IOException{
+		
+		String header = "Dats";
+		String dataDiscriminator = "Order";
+		String symbol = "Symbol";
+		@SuppressWarnings("deprecation")
+		Time time = new Time(0, 0, 0);
+		int quantity = 0;
+		float proceeds = 0;
+		float price = 0;
+		float realizedPNL = 0;
+		float commissions = 0;
+		
 		File csvDataFile = new File(filePath);
 		CSVFormat format = CSVFormat.newFormat(',').withHeader();
 		CSVParser parser = CSVParser.parse(csvDataFile, Charset.defaultCharset(), format);
@@ -100,25 +112,8 @@ public class TradeLog_Parser {
 								CCL: [{symbol:CCL, price:1, quantity:100}]}
 		*/
 	}
-	
-	private void debugOrderMap() {
-		symbolToOrderList.forEach((symbol, listOfOrders) -> {
-            System.out.println("Symbol:"+symbol);
-            listOfOrders.forEach((order)-> {
-            	System.out.println("Orders:"+order);
-            });
-        });
-	}
-	
-	private void debugOrderMap2() {
-		for(HashMap.Entry<String, List<Order>> entry: symbolToOrderList.entrySet()) {
-			System.out.println("Symbol:"+ entry.getKey());
-			for(Order orderEntry: entry.getValue()) {
-				System.out.println("Orders:"+ orderEntry);
-			}
-		}
-	}
-	
+
+	/*
 	public void formatOrderToCSV(String savePath) throws IOException {
 		//Write out the header below
 		//Symbol, Long/Short, T. Price Open, T. Price Close, Shares, Time Open, Time Close, Time Hold, Capital, Results, Partials, Scalp
@@ -126,7 +121,6 @@ public class TradeLog_Parser {
 		//If shares != 0, take that Open T. Price, and Time Open
 		//If total shares != 0, update Open T. Price, and Close T. Price
 		//If total shares == 0, update Close T. Price, and Time Close, 
-		
 		
 		File file = new File(savePath);
 		FileWriter output = new FileWriter(file);
@@ -175,7 +169,73 @@ public class TradeLog_Parser {
 		}
         write.close();
 	}
+	*/
+	public void formatOrderToCSV(String savePath) throws IOException {
+		File file = new File(savePath);
+		FileWriter output = new FileWriter(file);
+        CSVWriter write = new CSVWriter(output);
+        String[] header = {"Symbol", "Long/Short", "T. Price Open", "T. Price Close", "Shares", "Time Open", "Time Close", "Time Hold", "Capital", "Results", "Partials", "Scalp"};
+        write.writeNext(header, false);
+        for(HashMap.Entry<String, List<Order>> entry: symbolToOrderList.entrySet()) {
+			for(Order orderEntry: entry.getValue()) {
+				if(orderEntry.getQuantity()!=0) {
+					totalQuantity += orderEntry.getQuantity();
+					if(totalQuantity==0) {
+						
+						symbol = orderEntry.getSymbol();
+						
+						timeClose = orderEntry.getTime();
+						
+						priceClose = orderEntry.getPrice();
+						commissions = orderEntry.getCommissions();
+						capital = quantity*priceOpen;
+						partials++;
+						//timeHold = timeOpen - timeClose;
+						scalps = partials > 1? "Y" : "N";
+						String[] trade = {symbol, position, String.valueOf(priceOpen), String.valueOf(priceClose), String.valueOf(quantity), 
+								timeOpen.toString(), timeClose.toString(), timeHold.toString(), String.valueOf(capital), String.valueOf(results), String.valueOf(partials), scalps};
+						System.out.println(Arrays.toString(trade));
+						
+					}
+					else {
+						position = totalQuantity > 0 ? "Long" : "Short";
+						symbol = orderEntry.getSymbol();
+						timeOpen = orderEntry.getTime();
+						//timeHold = String.valueOf(Float.parseFloat(timeOpen)-Float.parseFloat(timeClose));
+						priceOpen = orderEntry.getPrice();
+						quantity = orderEntry.getQuantity();
+						commissions += orderEntry.getCommissions();
+						results = orderEntry.getRealizedPNL();
+						String[] trade = {symbol, position, String.valueOf(priceOpen), String.valueOf(priceClose), String.valueOf(quantity), 
+											timeOpen.toString(), timeClose.toString(), timeHold.toString(), String.valueOf(capital), String.valueOf(results), String.valueOf(partials), scalps};
+						write.writeNext(trade, false);
+						commissions = 0;
+						partials = 0;
+						//System.out.println(Arrays.toString(trade));
+					}
+				}
+			}
+		}
+        write.close();
+	}
 	
+	private void debugOrderMap() {
+		symbolToOrderList.forEach((symbol, listOfOrders) -> {
+            System.out.println("Symbol:"+symbol);
+            listOfOrders.forEach((order)-> {
+            	System.out.println("Orders:"+order);
+            });
+        });
+	}
+	
+	private void debugOrderMap2() {
+		for(HashMap.Entry<String, List<Order>> entry: symbolToOrderList.entrySet()) {
+			System.out.println("Symbol:"+ entry.getKey());
+			for(Order orderEntry: entry.getValue()) {
+				System.out.println("Orders:"+ orderEntry);
+			}
+		}
+	}
 	
 	public int totalTrades() {
 		int tradeCount = 0;
@@ -208,8 +268,6 @@ public class TradeLog_Parser {
 		}
 		return tradeOpen;
 	}
-	
-	
 	
 	public static void main(String[] args) throws IOException {
 		new TradeLog_Parser("C:\\Users\\prab_\\Downloads\\DU3292618_20210616.csv");
